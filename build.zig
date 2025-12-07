@@ -66,10 +66,16 @@ pub fn build(b: *std.Build) !void {
                                 },
                             }),
                         });
-                        const install_release_exe = b.addInstallArtifact(release_exe, .{});
+                        const install_release_exe = b.addInstallArtifact(release_exe, .{
+                            .dest_dir = .{
+                                .override = .{
+                                    .custom = "release",
+                                },
+                            },
+                        });
 
-                        const input_arg = try std.mem.concat(b.allocator, u8, &.{ "--input=", input_path });
-                        const exe_arg = try std.mem.concat(b.allocator, u8, &.{ "./zig-out/bin/", sub_directory.name });
+                        const input_arg = try std.mem.concat(b.allocator, u8, &.{ "--input=", try b.build_root.join(b.allocator, &.{input_path}) });
+                        const exe_arg = try std.mem.concat(b.allocator, u8, &.{ b.install_path, "/", "release", "/", sub_directory.name });
 
                         const benchmark_cmd = b.addSystemCommand(&.{ "hyperfine", "--shell=none", "--warmup=10", input_arg });
                         benchmark_cmd.addArg(exe_arg);
